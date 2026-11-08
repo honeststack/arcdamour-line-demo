@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ご予約 | LINE予約デモ</title>
+<meta name="robots" content="noindex">
+<style>
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --ink:#13201B; --muted:#5A6B65; --line:#D6DFDB;
+  --accent:#0A7553; --accent-soft:#E1F0E9; --danger:#B0412A; --danger-soft:#F8E6E1;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","BIZ UDPGothic","Yu Gothic","Meiryo",sans-serif;
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+.top{background:var(--accent);color:#fff;padding:18px 18px 16px;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+.top small{display:block;font-size:11px;opacity:.8;letter-spacing:.08em}
+.top h1{margin:2px 0 0;font-size:20px;line-height:1.4}
+.demo{background:#FFF8E6;color:#6B5313;font-size:12px;padding:8px 18px;border-bottom:1px solid #F0E2B8}
+main{padding:0 16px;max-width:560px;margin:0 auto}
+section{margin-top:22px}
+h2{font-size:13px;color:var(--muted);margin:0 0 8px;letter-spacing:.06em;display:flex;gap:8px;align-items:baseline}
+h2 b{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--accent);font-size:12px}
+.menus{display:grid;gap:8px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;
+  background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+.opt small{display:block;color:var(--muted);font-size:12px}
+.opt .price{font-weight:700;white-space:nowrap}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.dates{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.date{flex:0 0 58px;scroll-snap-align:start;font:inherit;color:inherit;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;
+  padding:8px 0;text-align:center;cursor:pointer;line-height:1.3}
+.date small{display:block;font-size:11px;color:var(--muted)}
+.date b{font-size:18px}
+.date.sun small,.date.sun b{color:#B0412A}
+.date.sat small,.date.sat b{color:#2A5BB0}
+.date:disabled{opacity:.35;cursor:not-allowed}
+.date[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
+.date[aria-pressed="true"] small,.date[aria-pressed="true"] b{color:#fff}
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.slot{font:inherit;font-weight:700;background:var(--surface);color:inherit;border:1.5px solid var(--line);border-radius:10px;padding:10px 0;cursor:pointer;font-variant-numeric:tabular-nums}
+.slot:disabled{background:transparent;color:#A9B5B0;text-decoration:line-through;cursor:not-allowed}
+.slot[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
+.hint{font-size:13px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,textarea{width:100%;font:inherit;font-size:16px;color:inherit;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+textarea{min-height:76px;resize:vertical}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.bar-in{max-width:560px;margin:0 auto;display:grid;gap:6px}
+.summary{font-size:12px;color:var(--muted);min-height:1.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.primary{width:100%;font:inherit;font-weight:700;font-size:16px;color:#fff;background:var(--accent);border:0;border-radius:12px;padding:14px;cursor:pointer}
+.primary:disabled{background:#A9C9BC;cursor:not-allowed}
+.error{background:var(--danger-soft);color:var(--danger);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:16px}
+.done{text-align:center;padding:40px 8px}
+.done .check{width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;font-size:34px;line-height:64px;margin:0 auto 14px}
+.done h2{justify-content:center;font-size:20px;color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:left;margin:16px 0}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.card dt{color:var(--muted)}
+.card dd{margin:0;font-weight:700}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+.spin{width:28px;height:28px;border:3px solid var(--accent-soft);border-top-color:var(--accent);border-radius:50%;margin:0 auto 12px;animation:s 0.8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:3s}}
+</style>
+</head>
+<body>
+<header class="top"><small id="shop">LINE予約デモ</small><h1>ご予約</h1></header>
+<div class="demo">これはデモ用の架空の店舗です。実際の来店予約にはなりません。</div>
+
+<main id="app"><div class="loading"><div class="spin"></div>読み込み中…</div></main>
+
+<div class="bar" id="bar" hidden>
+  <div class="bar-in">
+    <div class="summary" id="summary">メニューと日時を選んでください</div>
+    <button class="primary" id="submit" type="button" disabled>この内容で予約する</button>
+  </div>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js" charset="utf-8"></script>
+<script src="config.js"></script>
+<script>
+(function () {
+  var C = window.LIFF_CONFIG || {};
+  var app = document.getElementById('app');
+  var bar = document.getElementById('bar');
+  var submitBtn = document.getElementById('submit');
+  var summary = document.getElementById('summary');
+  var WD = ['日', '月', '火', '水', '木', '金', '土'];
+  var state = { menuId: null, date: null, time: null, profileName: '', config: null };
+
+  function h(tag, attrs, children) {
+    var el = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'text') el.textContent = attrs[k];
+      else if (k.indexOf('on') === 0) el.addEventListener(k.slice(2), attrs[k]);
+      else el.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) el.appendChild(c); });
+    return el;
+  }
+  function showError(msg) {
+    app.innerHTML = '';
+    app.appendChild(h('div', { class: 'error', text: msg }));
+  }
+  function api(params) {
+    var q = Object.keys(params).map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    return fetch(C.GAS_URL + '?' + q).then(function (r) { return r.json(); });
+  }
+  function parseYmd(s) { var p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function ymd(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function jaDate(s) { var d = parseYmd(s); return (d.getMonth() + 1) + '月' + d.getDate() + '日（' + WD[d.getDay()] + '）'; }
+
+  function setPressed(container, btn) {
+    container.querySelectorAll('[aria-pressed]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    btn.setAttribute('aria-pressed', 'true');
+  }
+
+  function updateBar() {
+    var menu = state.config.menus.filter(function (m) { return m.id === state.menuId; })[0];
+    var name = (document.getElementById('name') || {}).value || '';
+    var parts = [];
+    if (menu) parts.push(menu.name);
+    if (state.date) parts.push(jaDate(state.date));
+    if (state.time) parts.push(state.time + '〜');
+    summary.textContent = parts.length ? parts.join(' / ') : 'メニューと日時を選んでください';
+    submitBtn.disabled = !(menu && state.date && state.time && name.trim());
+  }
+
+  function render() {
+    var cfg = state.config;
+    document.getElementById('shop').textContent = cfg.shopName;
+    app.innerHTML = '';
+
+    // 1. メニュー
+    var menus = h('div', { class: 'menus' });
+    cfg.menus.forEach(function (m) {
+      var b = h('button', { type: 'button', class: 'opt', 'aria-pressed': 'false', onclick: function () {
+        state.menuId = m.id; setPressed(menus, b); updateBar();
+      } }, [
+        h('span', {}, [h('span', { text: m.name }), h('small', { text: '約' + m.minutes + '分' })]),
+        h('span', { class: 'price', text: m.price }),
+      ]);
+      menus.appendChild(b);
+    });
+    app.appendChild(h('section', {}, [h('h2', {}, [h('b', { text: '01' }), h('span', { text: 'メニュー' })]), menus]));
+
+    // 2. 日付
+    var dates = h('div', { class: 'dates', role: 'group', 'aria-label': '日付' });
+    var d = parseYmd(cfg.dateRange.from), end = parseYmd(cfg.dateRange.to);
+    while (d <= end) {
+      (function (day) {
+        var s = ymd(day), wd = day.getDay();
+        var closed = cfg.closedWeekdays.indexOf(wd) >= 0;
+        var b = h('button', {
+          type: 'button', class: 'date' + (wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''), 'aria-pressed': 'false',
+          'aria-label': jaDate(s) + (closed ? ' 定休日' : ''),
+          onclick: function () { state.date = s; state.time = null; setPressed(dates, b); loadSlots(); updateBar(); },
+        }, [h('small', { text: (day.getMonth() + 1) + '/' + WD[wd] }), h('b', { text: String(day.getDate()) })]);
+        if (closed) b.disabled = true;
+        dates.appendChild(b);
+      })(new Date(d));
+      d.setDate(d.getDate() + 1);
+    }
+    app.appendChild(h('section', {}, [h('h2', {}, [h('b', { text: '02' }), h('span', { text: '日付（定休日：' + cfg.closedWeekdays.map(function (w) { return WD[w]; }).join('・') + '曜日）' })]), dates]));
+
+    // 3. 時間
+    app.appendChild(h('section', {}, [
+      h('h2', {}, [h('b', { text: '03' }), h('span', { text: '時間' })]),
+      h('div', { id: 'slots' }, [h('div', { class: 'hint', text: '日付を選ぶと、空いている時間が表示されます' })]),
+    ]));
+
+    // 4. お客様情報
+    var name = h('input', { id: 'name', type: 'text', autocomplete: 'name', maxlength: '50', placeholder: '例：山田 花子', oninput: updateBar });
+    name.value = state.profileName;
+    var note = h('textarea', { id: 'note', maxlength: '300', placeholder: '例：前回と同じ長さでお願いします' });
+    app.appendChild(h('section', {}, [
+      h('h2', {}, [h('b', { text: '04' }), h('span', { text: 'お客様情報' })]),
+      h('label', { for: 'name', text: 'お名前（必須）' }), name,
+      h('label', { for: 'note', text: 'ご要望（任意）' }), note,
+      h('div', { id: 'formError' }),
+    ]));
+
+    bar.hidden = false;
+    updateBar();
+  }
+
+  function loadSlots() {
+    var box = document.getElementById('slots');
+    var reqDate = state.date;
+    box.innerHTML = '';
+    box.appendChild(h('div', { class: 'hint', text: '空き状況を確認しています…' }));
+    api({ action: 'slots', date: reqDate }).then(function (res) {
+      if (state.date !== reqDate) return; // 別の日付に切り替わった
+      box.innerHTML = '';
+      var free = res.slots.filter(function (s) { return s.available; }).length;
+      if (!free) { box.appendChild(h('div', { class: 'hint', text: 'この日は満席です。別の日をお選びください。' })); return; }
+      var grid = h('div', { class: 'slots' });
+      res.slots.forEach(function (s) {
+        var b = h('button', { type: 'button', class: 'slot', 'aria-pressed': 'false', text: s.time,
+          onclick: function () { state.time = s.time; setPressed(grid, b); updateBar(); } });
+        if (!s.available) { b.disabled = true; b.setAttribute('aria-label', s.time + ' 満席'); }
+        grid.appendChild(b);
+      });
+      box.appendChild(grid);
+    }).catch(function () {
+      box.innerHTML = '';
+      box.appendChild(h('div', { class: 'error', text: '空き状況を取得できませんでした。通信環境をご確認のうえ、日付を選び直してください。' }));
+    });
+  }
+
+  function submit() {
+    var errBox = document.getElementById('formError');
+    errBox.innerHTML = '';
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送信しています…';
+    var payload = {
+      action: 'reserve',
+      idToken: liff.getIDToken(),
+      menuId: state.menuId, date: state.date, time: state.time,
+      name: document.getElementById('name').value.trim(),
+      note: document.getElementById('note').value.trim(),
+    };
+    // text/plain で送ると、ブラウザの事前確認（CORS preflight）なしで GAS に届く
+    fetch(C.GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res.ok) {
+          errBox.appendChild(h('div', { class: 'error', text: res.error }));
+          submitBtn.textContent = 'この内容で予約する';
+          if (res.code === 'SLOT_TAKEN') { state.time = null; loadSlots(); }
+          updateBar();
+          return;
+        }
+        showDone(res.reservation);
+      })
+      .catch(function () {
+        errBox.appendChild(h('div', { class: 'error', text: '送信できませんでした。通信環境をご確認のうえ、もう一度お試しください。' }));
+        submitBtn.textContent = 'この内容で予約する';
+        updateBar();
+      });
+  }
+
+  function showDone(r) {
+    bar.hidden = true;
+    app.innerHTML = '';
+    var dl = h('dl');
+    [['日時', jaDate(r.date) + ' ' + r.time + '〜'], ['メニュー', r.menu], ['料金', r.price], ['お名前', r.name + ' 様'], ['予約ID', r.id]]
+      .forEach(function (kv) { dl.appendChild(h('dt', { text: kv[0] })); dl.appendChild(h('dd', { text: kv[1] })); });
+    var close = h('button', { type: 'button', class: 'primary', text: 'トーク画面に戻る', onclick: function () {
+      if (liff.isInClient()) liff.closeWindow(); else window.location.href = 'https://line.me/';
+    } });
+    app.appendChild(h('div', { class: 'done' }, [
+      h('div', { class: 'check', text: '✓', 'aria-hidden': 'true' }),
+      h('h2', { text: 'ご予約を承りました' }),
+      h('p', { text: '確認のメッセージをLINEでお送りしました。' }),
+      h('div', { class: 'card' }, [dl]),
+      close,
+    ]));
+  }
+
+  submitBtn.addEventListener('click', submit);
+
+  if (!C.LIFF_ID || C.LIFF_ID.indexOf('YOUR_') === 0 || !C.GAS_URL || C.GAS_URL.indexOf('YOUR_') === 0) {
+    showError('config.js の LIFF_ID と GAS_URL が設定されていません。README.md の手順をご確認ください。');
+    return;
+  }
+
+  liff.init({ liffId: C.LIFF_ID })
+    .then(function () {
+      if (!liff.isLoggedIn()) { liff.login({ redirectUri: window.location.href }); return null; }
+      return Promise.all([liff.getProfile(), api({ action: 'config' })]);
+    })
+    .then(function (res) {
+      if (!res) return;
+      state.profileName = res[0].displayName || '';
+      if (!res[1].ok) throw new Error('config');
+      state.config = res[1];
+      render();
+    })
+    .catch(function (err) {
+      console.error(err);
+      showError('予約フォームを開けませんでした。LINEアプリから開き直してください。');
+    });
+})();
+</script>
+</body>
+</html>
