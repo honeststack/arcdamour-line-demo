@@ -53,7 +53,7 @@ textarea{min-height:76px;resize:vertical}
 .summary{font-size:12px;color:var(--muted);min-height:1.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .primary{width:100%;font:inherit;font-weight:700;font-size:16px;color:#fff;background:var(--accent);border:0;border-radius:12px;padding:14px;cursor:pointer}
 .primary:disabled{background:#A9C9BC;cursor:not-allowed}
-.error{background:var(--danger-soft);color:var(--danger);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:16px}
+.error{white-space:pre-wrap;word-break:break-all;background:var(--danger-soft);color:var(--danger);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:16px}
 .done{text-align:center;padding:40px 8px}
 .done .check{width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;font-size:34px;line-height:64px;margin:0 auto 14px}
 .done h2{justify-content:center;font-size:20px;color:var(--ink)}
@@ -269,21 +269,31 @@ textarea{min-height:76px;resize:vertical}
     return;
   }
 
+  // どの段階で失敗したかを画面に出す（原因の切り分け用）
+  var step = 'init';
+  var STEP_LABEL = { init: 'LIFFの初期化', config: '店舗情報の読み込み' };
   liff.init({ liffId: C.LIFF_ID })
     .then(function () {
       if (!liff.isLoggedIn()) { liff.login({ redirectUri: window.location.href }); return null; }
-      return Promise.all([liff.getProfile(), api({ action: 'config' })]);
+      // プロフィール（名前の自動入力）は取れなくても予約は続けられる
+      return liff.getProfile().catch(function (e) { console.warn(e); return { displayName: '' }; });
     })
-    .then(function (res) {
-      if (!res) return;
-      state.profileName = res[0].displayName || '';
-      if (!res[1].ok) throw new Error('config');
-      state.config = res[1];
+    .then(function (profile) {
+      if (!profile) return null;
+      state.profileName = profile.displayName || '';
+      step = 'config';
+      return api({ action: 'config' });
+    })
+    .then(function (cfg) {
+      if (!cfg) return;
+      if (!cfg.ok) throw new Error(cfg.error || 'config returned ok=false');
+      state.config = cfg;
       render();
     })
     .catch(function (err) {
       console.error(err);
-      showError('予約フォームを開けませんでした。LINEアプリから開き直してください。');
+      var detail = [err && err.code, err && err.message].filter(Boolean).join(' / ') || String(err);
+      showError('予約フォームを開けませんでした（' + STEP_LABEL[step] + 'で失敗）。\n詳細：' + detail);
     });
 })();
 </script>
